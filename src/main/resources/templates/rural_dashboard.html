@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Rural Clinic Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+.notification-badge {
+    position: relative;
+    display: inline-block;
+}
+
+.badge-pulse {
+    position: absolute;
+    top: -8px;
+    right: -15px;
+    background: #dc3545;
+    color: white;
+    font-size: 12px;
+    padding: 4px 7px;
+    border-radius: 50%;
+    font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+        body {
+            background: linear-gradient(135deg, #e6f0ff, #f9fbff);
+            min-height: 100vh;
+        }
+        .dashboard-wrapper {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        .card {
+            border: none;
+            border-radius: 14px;
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+        }
+        th {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .logout-section {
+            margin-top: 40px;
+            padding-bottom: 30px;
+        }
+
+        h4 {
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-5">
+    <div class="dashboard-wrapper">
+        <h2 class="text-center mb-4">
+            <i class="bi bi-hospital-fill text-primary"></i>
+            Rural Clinic Dashboard
+        </h2>
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4>
+                <i class="bi bi-geo-alt-fill text-danger"></i>
+                Clinic Info
+            </h4>
+            <p class="mt-2">
+                <strong>Clinic Address:</strong>
+                <span th:text="${clinicAddress}"></span>
+            </p>
+        </div>
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4>
+                <i class="bi bi-upload text-success"></i>
+                Submit Query / Patient Info
+            </h4>
+
+            <form action="/submitClinicEntry" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="clinicEmail" th:value="${clinicEmail}" />
+
+                <div class="mb-3">
+                    <label class="form-label">Subject / Reason</label>
+                    <input type="text" name="subject" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Patient Report (PDF/Images)</label>
+                    <input type="file" name="reportFile" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Voice Note</label>
+                    <input type="file" name="voiceFile" class="form-control">
+                </div>
+
+                <button class="btn btn-primary px-4">
+                    <i class="bi bi-send-fill"></i> Submit
+                </button>
+            </form>
+        </div>
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4>
+                <i class="bi bi-folder-check text-primary"></i>
+                Submitted Entries
+            </h4>
+
+            <div th:if="${submissions == null or #lists.isEmpty(submissions)}"
+                 class="alert alert-info mt-3">
+                No entries available.
+            </div>
+
+            <table class="table table-bordered table-hover mt-3"
+                   th:if="${submissions != null and !#lists.isEmpty(submissions)}">
+
+                <thead>
+                <tr>
+                    <th>Subject / Reason</th>
+                    <th>Patient Report</th>
+                    <th>Voice Note</th>
+                    <th>Submitted At</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="s : ${submissions}">
+                    <td th:text="${s.subject}"></td>
+
+                    <td>
+                        <a th:href="@{${s.reportFile}}"
+                           th:text="${s.reportFile}"
+                           target="_blank"
+                           th:if="${s.reportFile != null}"></a>
+                        <span th:if="${s.reportFile == null}">No file</span>
+                    </td>
+
+                    <td>
+                        <a th:href="@{${s.voiceFile}}"
+                           th:text="${s.voiceFile}"
+                           target="_blank"
+                           th:if="${s.voiceFile != null}"></a>
+                        <span th:if="${s.voiceFile == null}">No file</span>
+                    </td>
+
+                    <td th:text="${s.submittedAt}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4 class="notification-badge">
+    <i class="bi bi-chat-left-text-fill text-warning"></i>
+    Recommendations Received
+
+    <span th:if="${recommendations != null and !#lists.isEmpty(recommendations)}"
+          class="badge-pulse"
+          th:text="${#lists.size(recommendations)}">
+    </span>
+</h4>
+
+            <div th:if="${recommendations == null or #lists.isEmpty(recommendations)}"
+                 class="alert alert-info mt-3">
+                No recommendations yet.
+            </div>
+
+            <table class="table table-bordered table-hover mt-3"
+                   th:if="${recommendations != null and !#lists.isEmpty(recommendations)}">
+
+                <thead>
+                <tr>
+                    <th>Doctor Email</th>
+                    <th>Recommendation</th>
+                    <th>Created At</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="rec : ${recommendations}">
+                    <td th:text="${rec.doctorEmail}"></td>
+                    <td th:text="${rec.recommendationText}"></td>
+                    <td th:text="${#temporals.format(rec.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="logout-section text-center">
+            <a href="/logout" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

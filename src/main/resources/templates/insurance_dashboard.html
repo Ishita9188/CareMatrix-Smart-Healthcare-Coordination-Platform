@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Insurance Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #e3f2fd, #f8fbff);
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logout-section {
+            margin-top: 40px;
+            padding-bottom: 30px;
+        }
+
+        table {
+            background-color: white;
+        }
+
+        th {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-5">
+    <div class="dashboard-container">
+
+        <h2 class="text-center mb-4">
+    <i class="bi bi-shield-check-fill text-primary"></i>
+    Insurance Dashboard
+</h2>
+
+        <div th:if="${claims == null or #lists.isEmpty(claims)}" class="alert alert-info text-center">
+            No claims available.
+        </div>
+
+        <table class="table table-bordered table-hover"
+               th:if="${claims != null and !#lists.isEmpty(claims)}">
+
+            <thead>
+            <tr>
+                <th>Patient Email</th>
+                <th>Amount</th>
+                <th>Reason</th>
+                <th>Incident Date</th>
+                <th>Incident Location</th>
+                <th>Document</th>
+                <th>Fraud Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="c : ${claims}">
+                <td th:text="${c.patientEmail}"></td>
+                <td th:text="${c.claimAmount}"></td>
+                <td th:text="${c.reason}"></td>
+                <td th:text="${c.incidentDate}"></td>
+                <td th:text="${c.incidentLocation}"></td>
+
+                <td>
+                    <a th:if="${c.documentFile != null}"
+                       th:href="@{/${c.documentFile}}"
+                       target="_blank"
+                       class="btn btn-primary btn-sm">
+                        View Document
+                    </a>
+                    <span th:if="${c.documentFile == null}">No file</span>
+                </td>
+
+                <td th:text="${c.fraudScore}"></td>
+
+                <td>
+                    <span th:text="${c.status}"
+                          th:classappend="${c.status == 'APPROVED' ? 'text-success fw-bold' :
+                                           (c.status == 'REJECTED' ? 'text-danger fw-bold' :
+                                           (c.status == 'PENDING' ? 'text-warning fw-bold' :
+                                           (c.status == 'HIGH RISK' ? 'text-warning fw-bold' : '')))}">
+                    </span>
+                </td>
+
+                <td>
+                    <form th:action="@{/updateClaimStatus}" method="post">
+                        <input type="hidden" name="claimId" th:value="${c.id}" />
+                        <button name="status" value="APPROVED"
+                                class="btn btn-success btn-sm mb-1">
+                            Approve
+                        </button>
+                        <button name="status" value="REJECTED"
+                                class="btn btn-danger btn-sm">
+                            Reject
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="logout-section text-center">
+            <a href="/" class="btn btn-secondary px-4">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
